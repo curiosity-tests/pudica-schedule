@@ -6,9 +6,9 @@
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |bisection-key/ |js-ffi/
       :type-slots $ {}
   :files $ {}
-    |app.comp.container $ %{} 'FileEntry
+    'app.comp.container $ %{} 'FileEntry
       :defs $ {}
-        |comp-container $ %{} 'CodeEntry (:doc |)
+        'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
               let
@@ -34,6 +34,7 @@
                             raw $ format-cirru-edn store
                           js/localStorage.setItem |pudica-schedule-viewer raw
                           js/window.open $ if config/dev? |http://localhost:3000 (str js/location.origin |/Memkits/pudica-schedule-viewer/)
+                          , &unit
                   comp-transparent
                   when config/dev? $ comp-inspect |Store store nil
                   when config/dev? $ comp-reel (&map:get reel :states) reel ({})
@@ -42,7 +43,7 @@
             {} (:return 'respo.schema/Component)
               :args $ [] 'T
               :generics $ [] 'T
-        |comp-transparent $ %{} 'CodeEntry (:doc |)
+        'comp-transparent $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-transparent () $ span
               {} (:class-name |transparent)
@@ -51,7 +52,7 @@
           :schema $ :: 'Fn
             {} (:return 'respo.schema/Component)
               :args $ []
-        |on-clear $ %{} 'CodeEntry (:doc |)
+        'on-clear $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn on-clear (e dispatch!) (dispatch! :task/clear nil)
           :examples $ []
@@ -71,9 +72,9 @@
             app.style :as style
             app.config :as config
             reel.comp.reel :refer $ comp-reel
-    |app.comp.task $ %{} 'FileEntry
+    'app.comp.task $ %{} 'FileEntry
       :defs $ {}
-        |comp-task $ %{} 'CodeEntry (:doc |)
+        'comp-task $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-task (task idx focused? dragging-id dropping-id)
               []
@@ -102,9 +103,7 @@
                           .!setData data-transfer |text $ &map:get task :id
                           .!setDragImage data-transfer (js/document.querySelector |.transparent) 0 0
                           d! :mark/dragging $ &map:get task :id
-                      :dragend $ fn (e d!)
-                        d! $ :: :mark/dragging
-                        d! $ :: :mark/dropping
+                      :dragend $ fn (e d!) (d! :mark/dragging |) (d! :mark/dropping |)
                       :dragenter $ fn (e d!)
                         d! :mark/dropping $ &map:get task :id
                       :dragover $ fn (e d!)
@@ -147,7 +146,7 @@
             {} (:return 'respo.schema/Component)
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'Number 'Bool 'String 'String
               :features $ #{} :js-ffi
-        |css-done $ %{} 'CodeEntry (:doc |)
+        'css-done $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle css-done $ {}
               |$0 $ {} (:width 20) (:height 20)
@@ -157,7 +156,7 @@
                 :border-radius |50%
           :examples $ []
           :schema $ :: 'String
-        |css-task $ %{} 'CodeEntry (:doc |)
+        'css-task $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle css-task $ {}
               |$0 $ {} (:position :absolute) (:padding "|0 16px") (:transition-duration |300ms) (:transition-property |top,transform,outline,opacity,box-shadow) (:align-items :center) (:transform-origin "|8% 50%")
@@ -172,7 +171,7 @@
                 :z-index 999
           :examples $ []
           :schema $ :: 'String
-        |css-text $ %{} 'CodeEntry (:doc |)
+        'css-text $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle css-text $ {}
               |$0 $ {} (:width 600) (:background-color :transparent)
@@ -188,7 +187,7 @@
               |$0:focus $ {} (:box-shadow :none) (:border :none)
           :examples $ []
           :schema $ :: 'String
-        |effect-in $ %{} 'CodeEntry (:doc |)
+        'effect-in $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defeffect effect-in (done?) (action el at-place?)
               case-default action nil
@@ -223,7 +222,7 @@
             {} (:return 'respo.schema/Effect)
               :args $ [] 'Bool
               :features $ #{} :js-ffi
-        |on-keydown $ %{} 'CodeEntry (:doc |)
+        'on-keydown $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn on-keydown (task-id text idx)
               fn (e dispatch!)
@@ -279,9 +278,9 @@
             respo.comp.space :refer $ =<
             app.util.dom :refer $ get-width
             app.config :refer $ demo?
-    |app.comp.todolist $ %{} 'FileEntry
+    'app.comp.todolist $ %{} 'FileEntry
       :defs $ {}
-        |comp-todolist $ %{} 'CodeEntry (:doc |)
+        'comp-todolist $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-todolist (tasks pointer dragging-id dropping-id)
               div
@@ -315,7 +314,7 @@
               :args $ []
                 :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                 , 'Number 'String 'String
-        |css-cursor $ %{} 'CodeEntry (:doc |)
+        'css-cursor $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstyle css-cursor $ {}
               |$0 $ {} (:left -20) (:width 8) (:height 40)
@@ -335,35 +334,35 @@
             [] respo.comp.space :refer $ [] =<
             [] app.comp.task :refer $ [] comp-task
             [] clojure.string :as string
-    |app.config $ %{} 'FileEntry
+    'app.config $ %{} 'FileEntry
       :defs $ {}
-        |demo? $ %{} 'CodeEntry (:doc |)
+        'demo? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def demo? $ = |true
               option:unwrap-or (get-env |demo) |false
           :examples $ []
           :schema $ :: 'Bool
-        |dev? $ %{} 'CodeEntry (:doc |)
+        'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def dev? $ = |dev
               option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
-        |site $ %{} 'CodeEntry (:doc |)
+        'site $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:title |Pudica) (:icon |http://cdn.tiye.me/logo/pudica.png) (:storage-key |pudica-schedule)
           :examples $ []
           :schema $ :: 'Map 'Tag 'String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote (ns app.config)
-    |app.main $ %{} 'FileEntry
+    'app.main $ %{} 'FileEntry
       :defs $ {}
-        |*reel $ %{} 'CodeEntry (:doc |)
+        '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
           :schema $ :: 'Ref
-        |adjust-focus! $ %{} 'CodeEntry (:doc |)
+        'adjust-focus! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn adjust-focus! () $ do
               js/setTimeout $ fn ()
@@ -378,13 +377,13 @@
                           .-activeElement $ unsafe-coerce js/document JsObject
                           , JsObject
                     .!focus $ unsafe-coerce maybe-input JsObject
-              ;nil
+              , &unit
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Unit)
               :args $ []
               :features $ #{} :js-ffi
-        |dispatch! $ %{} 'CodeEntry (:doc |)
+        'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
               when config/dev? $ println |Dispatch: op
@@ -394,7 +393,7 @@
             {} (:return 'Unit)
               :args $ [] 'Dynamic
               :features $ #{} :js-ffi
-        |main! $ %{} 'CodeEntry (:doc |)
+        'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn main! ()
               if config/dev? $ load-console-formatter!
@@ -418,26 +417,26 @@
             {} (:return 'Unit)
               :args $ []
               :features $ #{} :js-ffi
-        |mount-target $ %{} 'CodeEntry (:doc |)
+        'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
           :examples $ []
           :schema $ :: 'JsNullish 'JsObject
-        |persist-storage! $ %{} 'CodeEntry (:doc |)
+        'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (& e)
               do
                 println "|Saved to storage:" $ .!toISOString (new js/Date)
                 js/localStorage.setItem (&map:get config/site :storage-key)
                   format-cirru-edn $ &map:get @*reel :store
-                ;nil
+                , &unit
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Unit)
               :args $ []
               :features $ #{} :js-ffi
               :rest $ :: 'JsNullish 'JsObject
-        |reload! $ %{} 'CodeEntry (:doc |)
+        'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
               do (remove-watch *reel :changes) (clear-cache!)
@@ -449,7 +448,7 @@
           :schema $ :: 'Fn
             {} (:return 'Unit)
               :args $ []
-        |render-app! $ %{} 'CodeEntry (:doc |)
+        'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*reel) dispatch!
           :examples $ []
@@ -469,9 +468,9 @@
             app.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
-    |app.schema $ %{} 'FileEntry
+    'app.schema $ %{} 'FileEntry
       :defs $ {}
-        |Op $ %{} 'CodeEntry (:doc |)
+        'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defenum Op (:states 'Dynamic 'Dynamic) (:task/add-before 'String) (:task/add-after 'String) (:task/edit 'String 'String) (:task/toggle 'String) (:task/relax)
               :task/delete $ :: 'List 'Dynamic
@@ -487,7 +486,7 @@
               :hydrate-storage 'Dynamic
           :examples $ []
           :schema $ :: 'Enum
-        |store $ %{} 'CodeEntry (:doc |)
+        'store $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def store $ {}
               :tasks $ {}
@@ -500,7 +499,7 @@
               :archives $ {}
           :examples $ []
           :schema $ :: 'Map 'Tag 'Dynamic
-        |task $ %{} 'CodeEntry (:doc |)
+        'task $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def task $ {} (:id nil) (:text |) (:done? false) (:sort-id nil) (:created-time nil) (:done-time nil) (:archived-time nil)
           :examples $ []
@@ -509,9 +508,9 @@
         :code $ quote
           ns app.schema $ :require
             [] bisection-key.core :refer $ [] mid-id
-    |app.style $ %{} 'FileEntry
+    'app.style $ %{} 'FileEntry
       :defs $ {}
-        |link $ %{} 'CodeEntry (:doc |)
+        'link $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def link $ merge ui/link
               {} $ :margin "|0 8px"
@@ -520,9 +519,9 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.style $ :require ([] respo-ui.core :as ui)
-    |app.updater $ %{} 'FileEntry
+    'app.updater $ %{} 'FileEntry
       :defs $ {}
-        |add-after $ %{} 'CodeEntry (:doc |)
+        'add-after $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn add-after (store task-id op-id op-time)
               let
@@ -549,7 +548,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'String 'String 'Number
               :return $ :: 'Map 'Tag 'Dynamic
-        |add-before $ %{} 'CodeEntry (:doc |)
+        'add-before $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn add-before (store task-id op-id op-time)
               let
@@ -574,7 +573,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'String 'String 'Number
               :return $ :: 'Map 'Tag 'Dynamic
-        |delete-task $ %{} 'CodeEntry (:doc |)
+        'delete-task $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn delete-task (store op-data)
               let-sugar
@@ -591,7 +590,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String)
               :return $ :: 'Map 'Tag 'Dynamic
-        |move-task $ %{} 'CodeEntry (:doc |)
+        'move-task $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn move-task (store op-data)
               let-sugar
@@ -636,7 +635,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String)
               :return $ :: 'Map 'Tag 'Dynamic
-        |move-task-down $ %{} 'CodeEntry (:doc |)
+        'move-task-down $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn move-task-down (store op-data)
               let-sugar
@@ -670,7 +669,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
               :return $ :: 'Map 'Tag 'Dynamic
-        |move-task-up $ %{} 'CodeEntry (:doc |)
+        'move-task-up $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn move-task-up (store op-data)
               let-sugar
@@ -704,7 +703,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'String
               :return $ :: 'Map 'Tag 'Dynamic
-        |relax-tasks $ %{} 'CodeEntry (:doc |)
+        'relax-tasks $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn relax-tasks (store op-id op-time)
               let
@@ -733,7 +732,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) 'String 'Number
               :return $ :: 'Map 'Tag 'Dynamic
-        |swap-tasks $ %{} 'CodeEntry (:doc |)
+        'swap-tasks $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn swap-tasks (store op-data)
               let-sugar
@@ -755,7 +754,7 @@
             {}
               :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String)
               :return $ :: 'Map 'Tag 'Dynamic
-        |updater $ %{} 'CodeEntry (:doc |)
+        'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
               tag-match op
@@ -800,14 +799,14 @@
           ns app.updater $ :require (app.schema :as schema)
             respo.cursor :refer $ [] update-states
             bisection-key.core :refer $ [] bisect max-id min-id mid-id
-    |app.util.dom $ %{} 'FileEntry
+    'app.util.dom $ %{} 'FileEntry
       :defs $ {}
-        |*canvas-element $ %{} 'CodeEntry (:doc |)
+        '*canvas-element $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *canvas-element $ if (exists? js/document) (js/document.createElement |canvas) nil
           :examples $ []
           :schema $ :: 'Ref (:: 'JsNullish 'JsObject)
-        |get-width $ %{} 'CodeEntry (:doc |)
+        'get-width $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn get-width (text font-family font-size)
               if (exists? js/document)
