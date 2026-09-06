@@ -15,10 +15,10 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "vite": "^8.2.1"
+    "vite": "^8.2.2"
   },
   "dependencies": {
-    "@calcit/procs": "0.13.72",
+    "@calcit/procs": "0.13.77",
     "shortid": "^2.2.17"
   }
 }

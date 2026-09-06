@@ -83,17 +83,28 @@
                   {}
                     :class-name $ str-spaced css/row css-task
                     :style $ merge
-                      {} $ :top
-                        str (* idx 49) |px
-                      if (&map:get task :done?)
-                        {} $ :opacity 0.5
-                      if
-                        = dropping-id $ &map:get task :id
-                        {} (:opacity 0.8) (:transform "|translate(2px,4px)") (:z-index 900)
-                          :outline $ str "|2px solid " (hsl 0 0 86)
-                      if
-                        = dragging-id $ &map:get task :id
-                        {} (:z-index 999) (:opacity 0.5) (:transform "|translate(-2px,-4px)")
+                      unsafe-coerce
+                        {} $ :top
+                          str (* idx 49) |px
+                        :: 'Map 'Tag 'Dynamic
+                      unsafe-coerce
+                        if (&map:get task :done?)
+                          {} $ :opacity 0.5
+                          {}
+                        :: 'Map 'Tag 'Dynamic
+                      unsafe-coerce
+                        if
+                          = dropping-id $ &map:get task :id
+                          {} (:opacity 0.8) (:transform "|translate(2px,4px)") (:z-index 900)
+                            :outline $ str "|2px solid " (hsl 0 0 86)
+                          {}
+                        :: 'Map 'Tag 'Dynamic
+                      unsafe-coerce
+                        if
+                          = dragging-id $ &map:get task :id
+                          {} (:z-index 999) (:opacity 0.5) (:transform "|translate(-2px,-4px)")
+                          {}
+                        :: 'Map 'Tag 'Dynamic
                     :draggable true
                     :on $ {}
                       :dragstart $ fn (e d!)
@@ -136,11 +147,17 @@
                     :on-click $ fn (e d!) (d! :pointer/touch idx)
                   <> (&map:get task :sort-id)
                     merge
-                      {} $ :color (hsl 0 0 40 0.1)
-                      if demo? $ {}
-                        :color $ hsl 0 0 0 0.4
-                        :font-size 16
-                        :font-family ui/font-code
+                      unsafe-coerce
+                        {} $ :color (hsl 0 0 40 0.1)
+                        :: 'Map 'Tag 'Dynamic
+                      unsafe-coerce
+                        if demo?
+                          {}
+                            :color $ hsl 0 0 0 0.4
+                            :font-size 16
+                            :font-family ui/font-code
+                          {}
+                        :: 'Map 'Tag 'Dynamic
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'respo.schema/Component)
@@ -405,7 +422,9 @@
               js/window.addEventListener |beforeunload persist-storage!
               flipped js/setInterval 60000 persist-storage!
               js/window.addEventListener |visibilitychange $ fn (_)
-                if (not= |visible js/document.visibilityState) (persist-storage!)
+                if
+                  not= |visible $ unsafe-coerce js/document.visibilityState 'String
+                  persist-storage!
               let
                   raw $ js/localStorage.getItem (&map:get config/site :storage-key)
                 when (js-present? raw)
@@ -527,7 +546,7 @@
               let
                   base-task $ get-in store ([] :tasks task-id)
                   base-sort-id $ &map:get (option:unwrap base-task) :sort-id
-                  all-sort-ids $ -> (&map:get store :tasks) (.to-list)
+                  all-sort-ids $ -> (&map:get store :tasks) (&map:to-list)
                     map $ fn (pair)
                       &map:get
                         option:unwrap $ last pair
@@ -554,7 +573,7 @@
               let
                   base-task $ get-in store ([] :tasks task-id)
                   base-sort-id $ &map:get (option:unwrap base-task) :sort-id
-                  all-sort-ids $ -> (&map:get store :tasks) (.to-list)
+                  all-sort-ids $ -> (&map:get store :tasks) (&map:to-list)
                     map $ fn (pair)
                       &map:get
                         option:unwrap $ last pair
@@ -584,11 +603,13 @@
                   , store $ -> store
                     update :tasks $ fn (tasks) (dissoc tasks task-id)
                     update :pointer $ fn (pointer)
-                      if (= 0 idx) 0 $ dec pointer
+                      if
+                        = 0 $ assert-type idx 'Number
+                        , 0 $ dec pointer
           :examples $ []
           :schema $ :: 'Fn
             {}
-              :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'String)
+              :args $ [] (:: 'Map 'Tag 'Dynamic) 'List
               :return $ :: 'Map 'Tag 'Dynamic
         'move-task $ %{} 'CodeEntry (:doc |)
           :code $ quote
@@ -596,7 +617,8 @@
               let-sugar
                     [] from-id to-id
                     , op-data
-                  tasks $ &map:get store :tasks
+                  tasks $ assert-type (&map:get store :tasks)
+                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   before? $ >
                     &map:get
                       option:unwrap $ get tasks from-id
@@ -607,12 +629,12 @@
                   from-task $ get tasks from-id
                   to-task $ get tasks to-id
                   base-sort-id $ &map:get (option:unwrap to-task) :sort-id
-                  all-sort-ids $ -> (&map:get store :tasks) (vals)
+                  all-sort-ids $ -> tasks (vals)
                     map $ fn (x) (&map:get x :sort-id)
-                  smaller-sort-ids $ -> all-sort-ids (.to-list)
+                  smaller-sort-ids $ -> all-sort-ids (&set:to-list)
                     filter $ fn (x) (< x base-sort-id)
                     sort &compare
-                  greater-sort-ids $ -> all-sort-ids (.to-list)
+                  greater-sort-ids $ -> all-sort-ids (&set:to-list)
                     filter $ fn (x) (> x base-sort-id)
                     sort &compare
                   new-sort-id $ if before?
@@ -623,7 +645,7 @@
                   new-pointer $ option:unwrap
                     ->
                       &exclude all-sort-ids $ &map:get (option:unwrap from-task) :sort-id
-                      .to-list
+                      &set:to-list
                       conj new-sort-id
                       sort &compare
                       .index-of new-sort-id
@@ -640,12 +662,12 @@
             defn move-task-down (store op-data)
               let-sugar
                   from-id op-data
-                  tasks $ &map:get store :tasks
+                  tasks $ assert-type (&map:get store :tasks)
+                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   from-task $ get tasks from-id
-                  sorted-pairs $ -> (&map:get store :tasks) (vals)
+                  sorted-pairs $ -> tasks (vals) (&set:to-list)
                     map $ fn (x)
                       [] (&map:get x :sort-id) (&map:get x :id)
-                    .to-list
                     .sort $ fn (a b)
                       &compare
                         option:unwrap $ first a
@@ -674,12 +696,12 @@
             defn move-task-up (store op-data)
               let-sugar
                   from-id op-data
-                  tasks $ &map:get store :tasks
+                  tasks $ assert-type (&map:get store :tasks)
+                    :: 'Map 'String $ :: 'Map 'Tag 'Dynamic
                   from-task $ get tasks from-id
-                  sorted-pairs $ -> (&map:get store :tasks) (vals)
+                  sorted-pairs $ -> tasks (vals) (&set:to-list)
                     map $ fn (x)
                       [] (&map:get x :sort-id) (&map:get x :id)
-                    .to-list
                     .sort $ fn (a b)
                       &compare
                         option:unwrap $ first a
@@ -710,7 +732,7 @@
                   done-tasks $ -> (&map:get store :tasks)
                     filter $ fn (pair)
                       let[] (task-id task) pair $ and (&map:get task :done?)
-                        not $ .blank? (&map:get task :text)
+                        not $ blank? (&map:get task :text)
                     map $ fn (pair)
                       let[] (task-id task) pair $ [] task-id (assoc task :archived-time op-time)
                 -> store
@@ -757,7 +779,7 @@
         'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
-              tag-match op
+              match op
                 (:states cursor s) (update-states store cursor s)
                 (:task/add-before data) (add-before store data op-id op-time)
                 (:task/add-after data) (add-after store data op-id op-time)
